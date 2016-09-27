@@ -46,7 +46,7 @@ void tritonize(ea_t pc, thid_t threadID)
 
 	/*This will fill the 'cmd' (to get the instruction size) which is a insn_t structure https://www.hex-rays.com/products/ida/support/sdkdoc/classinsn__t.html */
 	if (!decode_insn(pc))
-		warning("[!] Some error decoding instruction at %p", pc);	
+		warning("[!] Some error decoding instruction at " HEX_FORMAT, pc);	
 	
 	unsigned char opcodes[15];
 	get_many_bytes(pc, opcodes, cmd.size);
@@ -150,7 +150,7 @@ void reanalize_current_instruction()
 	uint64 xip;
 	get_reg_val(TRITON_REG_XIP.getName().c_str(), &xip);
 	if (cmdOptions.showDebugInfo)
-		msg("[+] Reanalizyng instruction at " HEX_FORMAT "\n", xip);
+		msg("[+] Reanalizyng instruction at " HEX_FORMAT "\n", (ea_t)xip);
 	tritonize((ea_t)xip, get_current_thread());
 }
 
@@ -224,7 +224,7 @@ int idaapi tracer_callback(void *user_data, int notification_code, va_list va)
 			ea_t pc = va_arg(va, ea_t);
 			//Sometimes the cmd structure doesn't correspond with the traced instruction
 			//With this we are filling cmd with the instruction at the address specified
-			ua_ana0(pc);
+			decode_insn(pc);
 
 			// We do this to blacklist API that does not change the tainted input
 			if (cmd.itype == NN_call || cmd.itype == NN_callfi || cmd.itype == NN_callni)
@@ -249,10 +249,8 @@ int idaapi tracer_callback(void *user_data, int notification_code, va_list va)
 						blacklisted callback to enable tracing again*/
 						ea_t next_ea = next_head(pc, BADADDR);
 						add_bpt(next_ea, 1, BPT_EXEC);
-						char cmt[256];
-						sprintf_s(cmt, "Temporal bp set by ponce for blacklisting\n");
 						//We set a comment so the user know why there is a new bp there
-						set_cmt(next_ea, cmt, false);
+						set_cmt(next_ea, "Temporal bp set by ponce for blacklisting\n", false);
 
 						breakpoint_pending_action bpa;
 						bpa.address = next_ea;
@@ -301,7 +299,7 @@ int idaapi tracer_callback(void *user_data, int notification_code, va_list va)
 			//Check if the limit instructions limit was reached
 			if (cmdOptions.limitInstructionsTracingMode && ponce_runtime_status.current_trace_counter >= cmdOptions.limitInstructionsTracingMode)
 			{
-				int answer = askyn_c(1, "[?] %d instructions has been traced. Do you want to execute %d more?", ponce_runtime_status.total_number_traced_ins, cmdOptions.limitInstructionsTracingMode);
+				int answer = askyn_c(1, "[?] %u instructions has been traced. Do you want to execute %u more?", ponce_runtime_status.total_number_traced_ins, (unsigned int)cmdOptions.limitInstructionsTracingMode);
 				if (answer == 0 || answer == -1) //No or Cancel
 				{
 					// stop the trace mode and suspend the process
@@ -325,7 +323,7 @@ int idaapi tracer_callback(void *user_data, int notification_code, va_list va)
 				}
 				else if ((GetTimeMs64() - ponce_runtime_status.tracing_start_time) / 1000 >= cmdOptions.limitTime)
 				{
-					int answer = askyn_c(1, "[?] the tracing was working for %d seconds(%d inst traced!). Do you want to execute it %d more?", (unsigned int)((GetTimeMs64() - ponce_runtime_status.tracing_start_time) / 1000), ponce_runtime_status.total_number_traced_ins, cmdOptions.limitTime);
+					int answer = askyn_c(1, "[?] the tracing was working for %u seconds(%u inst traced!). Do you want to execute it %u more?", (unsigned int)((GetTimeMs64() - ponce_runtime_status.tracing_start_time) / 1000), ponce_runtime_status.total_number_traced_ins, (unsigned int)cmdOptions.limitTime);
 					if (answer == 0 || answer == -1) //No or Cancel
 					{
 						// stop the trace mode and suspend the process
@@ -436,7 +434,7 @@ int idaapi ui_callback(void * ud, int notification_code, va_list va)
 				/*Iterate over the view types of every action*/
 				for (int j=0;; j++)
 				{
-					if (action_list[i].view_type[j] == NULL){
+					if (action_list[i].view_type[j] == __END__){
 						break;
 					}
 					if (action_list[i].view_type[j] == view_type)
@@ -474,10 +472,10 @@ int idaapi ui_callback(void * ud, int notification_code, va_list va)
 					{
 						char name[256];
 						//We put the index at the beginning so it is very easy to parse it with atoi(action_name)
-						sprintf_s(name, "%d_Ponce:solve_formula_sub", i);
+						qsnprintf(name, 255, "%d_Ponce:solve_formula_sub", i);
 						action_IDA_solve_formula_sub.name = name;
 						char label[256];
-						sprintf_s(label, "%d. " HEX_FORMAT " -> " HEX_FORMAT "", ponce_runtime_status.myPathConstraints[i].bound, ponce_runtime_status.myPathConstraints[i].conditionAddr, ponce_runtime_status.myPathConstraints[i].takenAddr);
+						qsnprintf(label, 255, "%d. " HEX_FORMAT " -> " HEX_FORMAT "", ponce_runtime_status.myPathConstraints[i].bound, ponce_runtime_status.myPathConstraints[i].conditionAddr, ponce_runtime_status.myPathConstraints[i].takenAddr);
 						action_IDA_solve_formula_sub.label = label;
 						bool success = register_action(action_IDA_solve_formula_sub);
 						//If the submenu is already registered, we should unregister it and re-register it
@@ -506,7 +504,8 @@ void set_SMT_results(Input *input_ptr){
 	/*To set the memory types*/
 	for (auto it = input_ptr->memOperand.begin(); it != input_ptr->memOperand.end(); it++)
 	{
-		put_many_bytes((ea_t)it->getAddress(), &it->getConcreteValue(), it->getSize());
+		auto concreteValue=it->getConcreteValue();
+		put_many_bytes((ea_t)it->getAddress(), &concreteValue, it->getSize());
 		triton::api.setConcreteMemoryValue(*it);
 		//We concretize the memory we set
 		triton::api.concretizeMemory(*it);

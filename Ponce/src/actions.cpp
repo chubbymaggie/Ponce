@@ -108,7 +108,7 @@ struct ah_symbolize_register_t : public action_handler_t
 			{
 				msg("[!] Symbolizing register %s\n", selected);
 				char comment[256];
-				sprintf_s(comment, 256, "Reg %s at address: "HEX_FORMAT"", selected, action_activation_ctx->cur_ea);
+				qsnprintf(comment, 256, "Reg %s at address: " HEX_FORMAT "", selected, action_activation_ctx->cur_ea);
 				register_to_symbolize.setConcreteValue(triton::api.getConcreteRegisterValue(register_to_symbolize, true));
 				triton::api.convertRegisterToSymbolicVariable(register_to_symbolize, std::string(comment));
 
@@ -168,6 +168,7 @@ struct ah_taint_memory_t : public action_handler_t
 	/*Event called when the user taint a memory*/
 	virtual int idaapi activate(action_activation_ctx_t *action_activation_ctx)
 	{
+#ifdef IDA69x
 		ea_t selection_starts = 0;
 		ea_t selection_ends = 0;
 		//If we are in the hex view windows we use the selected bytes
@@ -217,11 +218,13 @@ struct ah_taint_memory_t : public action_handler_t
 				break;
 			}
 		}
+#endif
 		return 0;
 	}
 
 	virtual action_state_t idaapi update(action_update_ctx_t *action_update_ctx_t)
 	{
+#ifdef IDA69x
 		//Only if process is being debugged
 		if (get_process_state() != DSTATE_NOTASK)
 		{
@@ -231,7 +234,8 @@ struct ah_taint_memory_t : public action_handler_t
 				{
 					auto selection_starts = action_update_ctx_t->cur_sel.from.at->toea();
 					auto selection_ends = action_update_ctx_t->cur_sel.to.at->toea();
-					if (selection_ends - selection_starts >= 0)
+					int diff = selection_ends - selection_starts;
+					if (diff >= 0)
 						return AST_ENABLE;
 				}
 			}
@@ -240,6 +244,7 @@ struct ah_taint_memory_t : public action_handler_t
 				return AST_ENABLE;
 			}
 		}
+#endif
 		return AST_DISABLE;
 	}
 };
@@ -258,6 +263,7 @@ struct ah_symbolize_memory_t : public action_handler_t
 	/*Event called when the user symbolize a memory*/
 	virtual int idaapi activate(action_activation_ctx_t *action_activation_ctx)
 	{
+#ifdef IDA69x
 		ea_t selection_starts = 0;
 		ea_t selection_ends = 0;
 		//If we are in the hex view windows we use the selected bytes
@@ -284,7 +290,7 @@ struct ah_symbolize_memory_t : public action_handler_t
 		msg("[+] Symbolizing memory from " HEX_FORMAT " to " HEX_FORMAT ". Total: %d bytes\n", selection_starts, selection_ends, selection_length);
 		//Tainting all the selected memory
 		char comment[256];
-		sprintf_s(comment, 256, "Mem "HEX_FORMAT"-"HEX_FORMAT" at address: "HEX_FORMAT"", selection_starts, selection_starts + selection_length, action_activation_ctx->cur_ea);
+		qsnprintf(comment, 256, "Mem " HEX_FORMAT "-" HEX_FORMAT " at address: " HEX_FORMAT "", selection_starts, selection_starts + selection_length, action_activation_ctx->cur_ea);
 		symbolize_all_memory(selection_starts, selection_length, comment);
 		/*When the user taints something for the first time we should enable step_tracing*/
 		start_tainting_or_symbolic_analysis();
@@ -306,11 +312,13 @@ struct ah_symbolize_memory_t : public action_handler_t
 				break;
 			}
 		}
+#endif
 		return 0;
 	}
 
 	virtual action_state_t idaapi update(action_update_ctx_t *action_update_ctx_t)
 	{
+#ifdef IDA69x
 		//Only if process is being debugged
 		if (get_process_state() != DSTATE_NOTASK)
 		{
@@ -320,7 +328,8 @@ struct ah_symbolize_memory_t : public action_handler_t
 				{
 					auto selection_starts = action_update_ctx_t->cur_sel.from.at->toea();
 					auto selection_ends = action_update_ctx_t->cur_sel.to.at->toea();
-					if (selection_ends - selection_starts >= 0)
+					int diff = selection_ends - selection_starts;
+					if (diff >= 0)
 						return AST_ENABLE;
 				}
 			}
@@ -329,6 +338,7 @@ struct ah_symbolize_memory_t : public action_handler_t
 				return AST_ENABLE;
 			}
 		}
+#endif
 		return AST_DISABLE;
 	}
 };
@@ -721,20 +731,20 @@ action_desc_t action_IDA_solve_formula_sub = ACTION_DESC_LITERAL(
 /*This list defined all the actions for the plugin*/
 struct action action_list[] =
 {
-	{ &action_IDA_enable_disable_tracing, { BWN_DISASM, NULL }, true, true, "" },
+	{ &action_IDA_enable_disable_tracing, { BWN_DISASM, __END__ }, true, true, "" },
 	
-	{ &action_IDA_taint_register, { BWN_DISASM, BWN_CPUREGS, NULL }, true, false, "Taint/"},
-	{ &action_IDA_taint_memory, { BWN_DISASM, BWN_DUMP, NULL }, true, false, "Taint/" },
+	{ &action_IDA_taint_register, { BWN_DISASM, BWN_CPUREGS, __END__ }, true, false, "Taint/"},
+	{ &action_IDA_taint_memory, { BWN_DISASM, BWN_DUMP, __END__ }, true, false, "Taint/" },
 
-	{ &action_IDA_symbolize_register, { BWN_DISASM, BWN_CPUREGS, NULL }, false, true, "Symbolic/"},
-	{ &action_IDA_symbolize_memory, { BWN_DISASM, BWN_DUMP, NULL }, false, true, "Symbolic/" },
+	{ &action_IDA_symbolize_register, { BWN_DISASM, BWN_CPUREGS, __END__ }, false, true, "Symbolic/"},
+	{ &action_IDA_symbolize_memory, { BWN_DISASM, BWN_DUMP, __END__ }, false, true, "Symbolic/" },
 
-	{ &action_IDA_negate, { BWN_DISASM, NULL }, false, true, "SMT/" },
-	{ &action_IDA_negateInjectRestore, { BWN_DISASM, NULL }, true, true, "SMT/" },
+	{ &action_IDA_negate, { BWN_DISASM, __END__ }, false, true, "SMT/" },
+	{ &action_IDA_negateInjectRestore, { BWN_DISASM, __END__ }, true, true, "SMT/" },
 
-	{ &action_IDA_createSnapshot, { BWN_DISASM, NULL }, true, true, "Snapshot/"},
-	{ &action_IDA_restoreSnapshot, { BWN_DISASM, NULL }, true, true, "Snapshot/" },
-	{ &action_IDA_deleteSnapshot, { BWN_DISASM, NULL }, true, true, "Snapshot/" },
-	{ &action_IDA_execute_native, { BWN_DISASM, NULL }, true, true, "" },
-	{ NULL, NULL, NULL }
+	{ &action_IDA_createSnapshot, { BWN_DISASM, __END__ }, true, true, "Snapshot/"},
+	{ &action_IDA_restoreSnapshot, { BWN_DISASM, __END__ }, true, true, "Snapshot/" },
+	{ &action_IDA_deleteSnapshot, { BWN_DISASM, __END__ }, true, true, "Snapshot/" },
+	{ &action_IDA_execute_native, { BWN_DISASM, __END__ }, true, true, "" },
+	{ NULL, __END__, __END__ }
 };

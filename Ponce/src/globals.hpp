@@ -45,6 +45,13 @@
 #define CPUSIZE 64
 #endif
 
+//stdcall does not exist in Linux so lets define it to nothing
+#if defined(__LINUX__) || defined(__MAC__)
+#define __stdcall
+#endif
+
+#define __END__ -1
+
 //All the options:
 //#define COLOR_TAINTED 0x99FFCE
 //#define COLOR_TAINTED_CONDITION 0x00b377
@@ -79,7 +86,7 @@ struct action{
 	int view_type[44]; // This are the posible views
 	bool enable_taint;
 	bool enable_symbolic;
-	char* menu_path; // this is where the item will be conteined in
+	char const* menu_path; // this is where the item will be conteined in
 };
 
 extern Snapshot snapshot;

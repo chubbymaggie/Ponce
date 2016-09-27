@@ -5,12 +5,20 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="X64ReleaseStatic_IDA6.8|Win32">
+      <Configuration>X64ReleaseStatic_IDA6.8</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="X64ReleaseStatic|Win32">
       <Configuration>X64ReleaseStatic</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="x64ReleaseZ3dyn|Win32">
       <Configuration>x64ReleaseZ3dyn</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="x68ReleaseStatic_IDA6.8|Win32">
+      <Configuration>x68ReleaseStatic_IDA6.8</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="x86ReleaseStatic|Win32">
@@ -76,7 +84,21 @@
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='x68ReleaseStatic_IDA6.8|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='X64ReleaseStatic|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='X64ReleaseStatic_IDA6.8|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
@@ -113,7 +135,13 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='x86ReleaseStatic|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='x68ReleaseStatic_IDA6.8|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='X64ReleaseStatic|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='X64ReleaseStatic_IDA6.8|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='x86ReleaseZ3dyn|Win32'" Label="PropertySheets">
@@ -131,24 +159,42 @@
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.plw</TargetExt>
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(ProjectName)_x86_static</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='x68ReleaseStatic_IDA6.8|Win32'">
+    <OutDir>$(SolutionDir)$(Platform)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <TargetExt>.plw</TargetExt>
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(ProjectName)_x86_static_IDA68</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='X64ReleaseStatic|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.p64</TargetExt>
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(ProjectName)_x64_static</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='X64ReleaseStatic_IDA6.8|Win32'">
+    <OutDir>$(SolutionDir)$(Platform)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <TargetExt>.p64</TargetExt>
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(ProjectName)_x64_static_IDA68</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='x86ReleaseZ3dyn|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.plw</TargetExt>
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(ProjectName)_x86_z3dyn</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='x64ReleaseZ3dyn|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.p64</TargetExt>
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(ProjectName)_x64_z3dyn</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='x64Release|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\</OutDir>
@@ -165,6 +211,9 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='x86ReleaseStatic|Win32'">
     <ClCompile>
@@ -174,7 +223,44 @@
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include_IDA6.95;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <PreprocessorDefinitions>IDA69x;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <CallingConvention>Cdecl</CallingConvention>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>
+      </EnableCOMDATFolding>
+      <OptimizeReferences>
+      </OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\PonceProject\Ponce\lib\x86_win_vc_32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(SolutionDir)..\..\Ponce\lib_IDA6.95\x86_win_vc_32\ida.lib;$(SolutionDir)..\..\external-libs\libs\ALL_static_MT_x86\*.lib</AdditionalDependencies>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+      <LinkStatus>false</LinkStatus>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='x68ReleaseStatic_IDA6.8|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <SDLCheck>
+      </SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include_IDA6.8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <PreprocessorDefinitions>X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
@@ -192,7 +278,7 @@
       <OptimizeReferences>
       </OptimizeReferences>
       <AdditionalLibraryDirectories>C:\PonceProject\Ponce\lib\x86_win_vc_32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(SolutionDir)..\..\Ponce\lib\x86_win_vc_32\ida.lib;$(SolutionDir)..\..\external-libs\libs\ALL_static_MT_x86\*.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)..\..\Ponce\lib_IDA6.8\x86_win_vc_32\ida.lib;$(SolutionDir)..\..\external-libs\libs\ALL_static_MT_x86\*.lib</AdditionalDependencies>
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
@@ -200,7 +286,7 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.9\plugins"</Command>
+      <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='X64ReleaseStatic|Win32'">
@@ -211,7 +297,44 @@
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include_IDA6.95;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <PreprocessorDefinitions>IDA69x;__EA64__;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <CallingConvention>Cdecl</CallingConvention>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>
+      </EnableCOMDATFolding>
+      <OptimizeReferences>
+      </OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\PonceProject\Ponce\lib\x86_win_vc_32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(SolutionDir)..\..\Ponce\lib_IDA6.95\x86_win_vc_64\ida.lib;$(SolutionDir)..\..\external-libs\libs\ALL_static_MT_x86\*.lib</AdditionalDependencies>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+      <LinkStatus>false</LinkStatus>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='X64ReleaseStatic_IDA6.8|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <SDLCheck>
+      </SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include_IDA6.8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <PreprocessorDefinitions>__EA64__;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
@@ -229,7 +352,7 @@
       <OptimizeReferences>
       </OptimizeReferences>
       <AdditionalLibraryDirectories>C:\PonceProject\Ponce\lib\x86_win_vc_32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(SolutionDir)..\..\Ponce\lib\x86_win_vc_64\ida.lib;$(SolutionDir)..\..\external-libs\libs\ALL_static_MT_x86\*.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)..\..\Ponce\lib_IDA6.8\x86_win_vc_64\ida.lib;$(SolutionDir)..\..\external-libs\libs\ALL_static_MT_x86\*.lib</AdditionalDependencies>
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
@@ -237,7 +360,7 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.9\plugins"</Command>
+      <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='x86ReleaseZ3dyn|Win32'">
@@ -248,9 +371,9 @@
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include_IDA6.95;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <PreprocessorDefinitions>X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IDA69x;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CallingConvention>Cdecl</CallingConvention>
@@ -266,7 +389,7 @@
       <OptimizeReferences>
       </OptimizeReferences>
       <AdditionalLibraryDirectories>C:\PonceProject\Ponce\lib\x86_win_vc_32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(SolutionDir)..\..\Ponce\lib\x86_win_vc_32\ida.lib;$(SolutionDir)..\..\external-libs\libs\Z3_dyn_rest_static_MT_x86\*.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)..\..\Ponce\lib_IDA6.95\x86_win_vc_32\ida.lib;$(SolutionDir)..\..\external-libs\libs\Z3_dyn_rest_static_MT_x86\*.lib</AdditionalDependencies>
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
@@ -285,9 +408,9 @@
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include_IDA6.95;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <PreprocessorDefinitions>__EA64__;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IDA69x;__EA64__;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CallingConvention>Cdecl</CallingConvention>
@@ -303,7 +426,7 @@
       <OptimizeReferences>
       </OptimizeReferences>
       <AdditionalLibraryDirectories>C:\PonceProject\Ponce\lib\x86_win_vc_32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(SolutionDir)..\..\Ponce\lib\x86_win_vc_64\ida.lib;$(SolutionDir)..\..\external-libs\libs\Z3_dyn_rest_static_MT_x86\*.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)..\..\Ponce\lib_IDA6.95\x86_win_vc_64\ida.lib;$(SolutionDir)..\..\external-libs\libs\Z3_dyn_rest_static_MT_x86\*.lib</AdditionalDependencies>
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
@@ -344,7 +467,7 @@
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.9\plugins"</Command>
+      <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
