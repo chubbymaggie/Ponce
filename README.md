@@ -11,14 +11,10 @@ Symbolic execution is not a new concept in the security community. It has been a
 We addressed these needs by creating Ponce, an IDA plugin that implements symbolic execution and taint analysis within the most used disassembler/debugger for reverse engineers.
 
 ## Installation
-Ponce works with both x86 and x64 binaries. Installing the plugin is as simple as copying [Ponce.plw](https://github.com/illera88/Ponce/releases/download/v0.1/Ponce.plw) and [Ponce.p64](https://github.com/illera88/Ponce/releases/download/v0.1/Ponce.p64) to the ```plugins\``` folder in your IDA installation directory. 
+Ponce works with both x86 and x64 binaries in IDA 6.8 and IDA 6.9x. Installing the plugin is as simple as copying the appropiate files from the [latest builds](https://github.com/illera88/Ponce/tree/master/latest_builds) to the ```plugins\``` folder in your IDA installation directory.
 
 ## OS Support
-Ponce currently works with IDA Pro on Windows for x86 and x64 binaries. 
-
-You can still debug Linux and Mac OS X binaries with Ponce using IDA's built-in remote debugger. 
-
-Ponce v0.2 will build native plugins for IDA Linux and IDA Mac OS X. Actually the code we wrote already takes these architectures into consideration using macros for the different operating systems.
+Ponce works on Windows, Linux and OSX natively! 
 
 ## Use cases
 - **Exploit development**: Ponce can help you create an exploit in a far more efficient manner as the exploit developer may easily see what parts of memory and which registers you control, as well as possible addresses which can be leveraged as ROP gadgets.
@@ -140,6 +136,9 @@ The project has 4 build configurations:
 
 The static version of ```z3.lib``` is ~ 1.1Gb and the linking time is considerable. That's the main reason why we have a building version that uses z3 dynamically (as a dll). If you are using z3 dynamically don't forget to copy the [libz3.dll](https://github.com/illera88/Ponce/blob/master/external-libs/libs/Z3_dyn_rest_static_MT_x86/libz3.dll) file into the IDA's directory.
 
+If you want to build Triton for linux or MacOsX check this file:
+https://github.com/illera88/Ponce/tree/master/builds/PonceBuild/nix/README.md
+
 ## FAQ
 ### Why the name of Ponce?
 Juan Ponce de León (1474 – July 1521) was a Spanish  explorer and conquistador. He discovered Florida in the United States. The IDA plugin will help you discover, explore and hopefully conquer the different paths in a binary. 
@@ -153,8 +152,9 @@ Open an [issue](https://github.com/illera88/Ponce/issues), we will solve it ASAP
 Sure! Please do pull requests and work in the opened issues. We will pay you in beers for help ;)
 
 ## Limitations
-Symbolic execution has some inherent problems:
+Concolic execution and Ponce have some problems:
 - Symbolic memory load/write: When the index used to read a memory value is symbolic like in `x = aray[symbolic_index]` some problems arise that could lead on the loose of track of the tainted/symbolized user controled input. 
+- Triton doesn't work very well with [floating point instructions](https://github.com/illera88/Ponce/issues/59).
 
 ## Authors
 - Alberto Garcia Illera ([@algillera](https://twitter.com/algillera)) alberto.garcia@salesforce.com

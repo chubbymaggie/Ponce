@@ -168,12 +168,15 @@ struct ah_taint_memory_t : public action_handler_t
 	/*Event called when the user taint a memory*/
 	virtual int idaapi activate(action_activation_ctx_t *action_activation_ctx)
 	{
-#ifdef IDA69x
 		ea_t selection_starts = 0;
 		ea_t selection_ends = 0;
 		//If we are in the hex view windows we use the selected bytes
 		if (action_activation_ctx->form_type == BWN_DUMP)
 		{
+//This menu is only enable in the HEX DUMP view in IDA 6.9x
+#ifdef __IDA68__
+			return 0;
+#else
 			if (action_activation_ctx->cur_sel.from.at == NULL || action_activation_ctx->cur_sel.to.at == NULL)
 			{
 				return 0;
@@ -181,6 +184,7 @@ struct ah_taint_memory_t : public action_handler_t
 			//We get the selection bounds from the action activation context
 			selection_starts = action_activation_ctx->cur_sel.from.at->toea();
 			selection_ends = action_activation_ctx->cur_sel.to.at->toea();
+#endif
 		}
 		//In the dissas windows we use the whole item selected. If we have a string we can't select only some bytes from the dissas windows
 		else if (action_activation_ctx->form_type == BWN_DISASM)
@@ -195,7 +199,7 @@ struct ah_taint_memory_t : public action_handler_t
 			return 0;
 		//The selection ends in the last item, we need to add 1 to calculate the length
 		ea_t selection_length = selection_ends - selection_starts + 1;
-		msg("[+] Tainting memory from " HEX_FORMAT " to " HEX_FORMAT ". Total: %d bytes\n", selection_starts, selection_ends, selection_length);
+		msg("[+] Tainting memory from " HEX_FORMAT " to " HEX_FORMAT ". Total: %d bytes\n", selection_starts, selection_ends, (int)selection_length);
 		//Tainting all the selected memory
 		taint_all_memory(selection_starts, selection_length);
 		/*When the user taints something for the first time we should enable step_tracing*/
@@ -218,33 +222,35 @@ struct ah_taint_memory_t : public action_handler_t
 				break;
 			}
 		}
-#endif
 		return 0;
 	}
 
 	virtual action_state_t idaapi update(action_update_ctx_t *action_update_ctx_t)
 	{
-#ifdef IDA69x
 		//Only if process is being debugged
 		if (get_process_state() != DSTATE_NOTASK)
 		{
 			if (action_update_ctx_t->form_type == BWN_DUMP)
 			{
+//This menu is only enable in the HEX DUMP view in IDA 6.9x
+#ifdef __IDA68__
+				return AST_DISABLE;
+#else
 				if (action_update_ctx_t->cur_sel.from.at != NULL && action_update_ctx_t->cur_sel.to.at != NULL)
 				{
 					auto selection_starts = action_update_ctx_t->cur_sel.from.at->toea();
 					auto selection_ends = action_update_ctx_t->cur_sel.to.at->toea();
-					int diff = selection_ends - selection_starts;
+					int diff = (int)(selection_ends - selection_starts);
 					if (diff >= 0)
 						return AST_ENABLE;
 				}
+#endif
 			}
 			else
 			{
 				return AST_ENABLE;
 			}
 		}
-#endif
 		return AST_DISABLE;
 	}
 };
@@ -263,17 +269,21 @@ struct ah_symbolize_memory_t : public action_handler_t
 	/*Event called when the user symbolize a memory*/
 	virtual int idaapi activate(action_activation_ctx_t *action_activation_ctx)
 	{
-#ifdef IDA69x
 		ea_t selection_starts = 0;
 		ea_t selection_ends = 0;
 		//If we are in the hex view windows we use the selected bytes
 		if (action_activation_ctx->form_type == BWN_DUMP)
 		{
+			//This menu is only enable in the HEX DUMP view in IDA 6.9x
+#ifdef __IDA68__
+			return 0;
+#else
 			if (action_activation_ctx->cur_sel.from.at == NULL || action_activation_ctx->cur_sel.to.at == NULL)
 				return 0;
 			//We get the selection bounds from the action activation context
 			selection_starts = action_activation_ctx->cur_sel.from.at->toea();
 			selection_ends = action_activation_ctx->cur_sel.to.at->toea();
+#endif
 		}
 		//In the dissas windows we use the whole item selected. If we have a string we can't select only some bytes from the dissas windows
 		else if (action_activation_ctx->form_type == BWN_DISASM)
@@ -287,7 +297,7 @@ struct ah_symbolize_memory_t : public action_handler_t
 
 		//The selection ends in the last item which is included, so we need to add 1 to calculate the length
 		auto selection_length = selection_ends - selection_starts + 1;
-		msg("[+] Symbolizing memory from " HEX_FORMAT " to " HEX_FORMAT ". Total: %d bytes\n", selection_starts, selection_ends, selection_length);
+		msg("[+] Symbolizing memory from " HEX_FORMAT " to " HEX_FORMAT ". Total: %d bytes\n", selection_starts, selection_ends, (int)selection_length);
 		//Tainting all the selected memory
 		char comment[256];
 		qsnprintf(comment, 256, "Mem " HEX_FORMAT "-" HEX_FORMAT " at address: " HEX_FORMAT "", selection_starts, selection_starts + selection_length, action_activation_ctx->cur_ea);
@@ -312,33 +322,35 @@ struct ah_symbolize_memory_t : public action_handler_t
 				break;
 			}
 		}
-#endif
 		return 0;
 	}
 
 	virtual action_state_t idaapi update(action_update_ctx_t *action_update_ctx_t)
 	{
-#ifdef IDA69x
 		//Only if process is being debugged
 		if (get_process_state() != DSTATE_NOTASK)
 		{
 			if (action_update_ctx_t->form_type == BWN_DUMP)
 			{
+				//This menu is only enable in the HEX DUMP view in IDA 6.9x
+#ifdef __IDA68__
+				return AST_DISABLE;
+#else
 				if (action_update_ctx_t->cur_sel.from.at != NULL && action_update_ctx_t->cur_sel.to.at != NULL)
 				{
 					auto selection_starts = action_update_ctx_t->cur_sel.from.at->toea();
 					auto selection_ends = action_update_ctx_t->cur_sel.to.at->toea();
-					int diff = selection_ends - selection_starts;
+					int diff = (int)(selection_ends - selection_starts);
 					if (diff >= 0)
 						return AST_ENABLE;
 				}
+#endif
 			}
 			else
 			{
 				return AST_ENABLE;
 			}
 		}
-#endif
 		return AST_DISABLE;
 	}
 };
@@ -604,6 +616,29 @@ action_desc_t action_IDA_show_taintWindow = ACTION_DESC_LITERAL(
 	"Show all the taint or symbolic items", //Optional: the action tooltip (available in menus/toolbar)
 	157); //Optional: the action icon (shows when in menus/toolbars)
 
+struct ah_unload_t : public action_handler_t
+{
+	virtual int idaapi activate(action_activation_ctx_t *ctx)
+	{
+		term();
+		return 0;
+	}
+
+	virtual action_state_t idaapi update(action_update_ctx_t *ctx)
+	{
+		return AST_ENABLE_ALWAYS;
+	}
+};
+static ah_unload_t ah_unload;
+
+action_desc_t action_IDA_unload = ACTION_DESC_LITERAL(
+	"Ponce:unload", // The action name. This acts like an ID and must be unique
+	"Unload plugin", //The action text.
+	&ah_unload, //The action handler.
+	"Ctrl+Shift+U", //Optional: the action shortcut
+	"Unload the plugin", //Optional: the action tooltip (available in menus/toolbar)
+	138); //Optional: the action icon (shows when in menus/toolbars)
+
 struct ah_execute_native_t : public action_handler_t
 {
 	virtual int idaapi activate(action_activation_ctx_t *ctx)
@@ -656,8 +691,10 @@ struct ah_enable_disable_tracing_t : public action_handler_t
 		{
 			//Enabling step tracing...
 			enable_step_trace(true);
+			set_step_trace_options(0);
 			ponce_runtime_status.tracing_start_time = 0;
 			//Enabling the trigger
+			ponce_runtime_status.analyzed_thread = get_current_thread();
 			ponce_runtime_status.runtimeTrigger.enable();
 			//And analyzing current instruction
 			reanalize_current_instruction();

@@ -159,42 +159,42 @@
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.plw</TargetExt>
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)_x86_static</TargetName>
+    <TargetName>$(ProjectName)_x86_IDA69_win</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='x68ReleaseStatic_IDA6.8|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.plw</TargetExt>
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)_x86_static_IDA68</TargetName>
+    <TargetName>$(ProjectName)_x86_IDA68_win</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='X64ReleaseStatic|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.p64</TargetExt>
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)_x64_static</TargetName>
+    <TargetName>$(ProjectName)_x64_IDA69_win</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='X64ReleaseStatic_IDA6.8|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.p64</TargetExt>
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)_x64_static_IDA68</TargetName>
+    <TargetName>$(ProjectName)_x64_IDA68_win</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='x86ReleaseZ3dyn|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.plw</TargetExt>
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)_x86_z3dyn</TargetName>
+    <TargetName>$(ProjectName)_x86_IDA69_win_z3dyn</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='x64ReleaseZ3dyn|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetExt>.p64</TargetExt>
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>$(ProjectName)_x64_z3dyn</TargetName>
+    <TargetName>$(ProjectName)_x64_IDA69_win_z3dyn</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='x64Release|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\</OutDir>
@@ -214,6 +214,10 @@
     <PostBuildEvent>
       <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>"C:\Program Files\Git\git-bash.exe" -c "cd /c/PonceProject/; bash version_number_update.sh"</Command>
+      <Message>This event update the version before compile the plugin</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='x86ReleaseStatic|Win32'">
     <ClCompile>
@@ -225,7 +229,7 @@
       </SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include_IDA6.95;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <PreprocessorDefinitions>IDA69x;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CallingConvention>Cdecl</CallingConvention>
@@ -251,6 +255,10 @@
     <PostBuildEvent>
       <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>"C:\Program Files\Git\git-bash.exe" -c "cd /c/PonceProject/; bash version_number_update.sh"</Command>
+      <Message>This event update the version before compile the plugin</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='x68ReleaseStatic_IDA6.8|Win32'">
     <ClCompile>
@@ -262,7 +270,7 @@
       </SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include_IDA6.8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <PreprocessorDefinitions>X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__IDA68__;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CallingConvention>Cdecl</CallingConvention>
@@ -288,6 +296,10 @@
     <PostBuildEvent>
       <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>"C:\Program Files\Git\git-bash.exe" -c "cd /c/PonceProject/; bash version_number_update.sh"</Command>
+      <Message>This event update the version before compile the plugin</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='X64ReleaseStatic|Win32'">
     <ClCompile>
@@ -299,7 +311,7 @@
       </SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include_IDA6.95;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <PreprocessorDefinitions>IDA69x;__EA64__;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__EA64__;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CallingConvention>Cdecl</CallingConvention>
@@ -325,6 +337,10 @@
     <PostBuildEvent>
       <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>"C:\Program Files\Git\git-bash.exe" -c "cd /c/PonceProject/; bash version_number_update.sh"</Command>
+      <Message>This event update the version before compile the plugin</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='X64ReleaseStatic_IDA6.8|Win32'">
     <ClCompile>
@@ -336,7 +352,7 @@
       </SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include_IDA6.8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <PreprocessorDefinitions>__EA64__;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__IDA68__;__EA64__;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CallingConvention>Cdecl</CallingConvention>
@@ -362,6 +378,10 @@
     <PostBuildEvent>
       <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>"C:\Program Files\Git\git-bash.exe" -c "cd /c/PonceProject/; bash version_number_update.sh"</Command>
+      <Message>This event update the version before compile the plugin</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='x86ReleaseZ3dyn|Win32'">
     <ClCompile>
@@ -373,7 +393,7 @@
       </SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include_IDA6.95;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <PreprocessorDefinitions>IDA69x;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CallingConvention>Cdecl</CallingConvention>
@@ -399,6 +419,10 @@
     <PostBuildEvent>
       <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>"C:\Program Files\Git\git-bash.exe" -c "cd /c/PonceProject/; bash version_number_update.sh"</Command>
+      <Message>This event update the version before compile the plugin</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='x64ReleaseZ3dyn|Win32'">
     <ClCompile>
@@ -410,7 +434,7 @@
       </SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)Ponce;$(SolutionDir)..\..\external-libs\includes\z3-4.4.2-win86\include;$(SolutionDir)..\..\external-libs\includes\boost_1_60_0;$(SolutionDir)..\..\Triton\src\libtriton\includes;$(SolutionDir)..\..\Ponce\include_IDA6.95;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <PreprocessorDefinitions>IDA69x;__EA64__;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__EA64__;X86_32;NDEBUG;WIN32;_WINDOWS;_USRDLL;__NT__;__IDP__;MAXSTR=1024;WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CallingConvention>Cdecl</CallingConvention>
@@ -436,6 +460,12 @@
     <PostBuildEvent>
       <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>"C:\Program Files\Git\git-bash.exe" -c "cd /c/PonceProject/; bash version_number_update.sh"</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>This event update the version before compile the plugin</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='x64Release|Win32'">
     <ClCompile>
@@ -469,6 +499,10 @@
     <PostBuildEvent>
       <Command>copy /Y $(TargetPath) "C:\Program Files (x86)\IDA 6.95\plugins"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>"C:\Program Files\Git\git-bash.exe" -c "cd /c/PonceProject/; bash version_number_update.sh"</Command>
+      <Message>This event update the version before compile the plugin</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

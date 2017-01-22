@@ -45,8 +45,10 @@ void start_tainting_or_symbolic_analysis()
 	if (!ponce_runtime_status.is_something_tainted_or_symbolize)
 	{
 		ponce_runtime_status.runtimeTrigger.enable();
+		ponce_runtime_status.analyzed_thread = get_current_thread();
 		ponce_runtime_status.is_something_tainted_or_symbolize = true;
 		enable_step_trace(true);
+		set_step_trace_options(0);
 		ponce_runtime_status.tracing_start_time = 0;
 	}
 }
@@ -154,7 +156,17 @@ ea_t find_function(char const *function_name)
 		// get_func_name2 gets the name of a function and stored it in funcName
 		if (get_func_name2(&funcName, curFunc->startEA) > 0){ // if found
 			if (strcmp(funcName.c_str(), function_name) == 0)
+			{
 				return curFunc->startEA;
+			}
+			//We need to ignore our prefix when the function is tainted
+			//If the function name starts with our prefix, fix for #51
+			if (strstr(funcName.c_str(), RENAME_TAINTED_FUNCTIONS_PREFIX) == funcName.c_str() && funcName.size() > RENAME_TAINTED_FUNCTIONS_PATTERN_LEN)
+			{
+				//Then we ignore the prefix and compare the rest of the function name
+				if (strcmp(funcName.c_str() + RENAME_TAINTED_FUNCTIONS_PATTERN_LEN, function_name) == 0)
+					return curFunc->startEA;
+			}
 		}
 	}
 	return -1;
@@ -171,10 +183,10 @@ ea_t get_args(int argument_number, bool skip_ret)
 	return value;
 
 #else
+	int skip_ret_index = skip_ret ? 1 : 0;
 	//Not converted to IDA we should use get_reg_val
 #ifdef __NT__ // note the underscore: without it, it's not msdn official!
 	// On Windows - function parameters are passed in using RCX, RDX, R8, R9 for ints / ptrs and xmm0 - 3 for float types.
-	int skip_ret_index = skip_ret ? 1 : 0;
 	switch (argument_number)
 	{
 	case 0: return getCurrentRegisterValue(TRITON_X86_REG_RCX).convert_to<ea_t>();
@@ -251,6 +263,18 @@ ea_t get_args_pointer(int argument_number, bool skip_ret)
 }
 
 //Use templates??
+short read_unicode_char_from_ida(ea_t address)
+{
+	short value;
+	//This is the way to force IDA to read the value from the debugger
+	//More info here: https://www.hex-rays.com/products/ida/support/sdkdoc/dbg_8hpp.html#ac67a564945a2c1721691aa2f657a908c
+	invalidate_dbgmem_contents(address, sizeof(value));
+	if (!get_many_bytes(address, &value, sizeof(value)))
+		msg("[!] Error reading memory from " HEX_FORMAT "\n", address);
+	return value;
+}
+
+//Use templates??
 char read_char_from_ida(ea_t address)
 {
 	char value;
@@ -258,7 +282,7 @@ char read_char_from_ida(ea_t address)
 	//More info here: https://www.hex-rays.com/products/ida/support/sdkdoc/dbg_8hpp.html#ac67a564945a2c1721691aa2f657a908c
 	invalidate_dbgmem_contents(address, sizeof(value));
 	if (!get_many_bytes(address, &value, sizeof(value)))
-		warning("[!] Error reading memory from " HEX_FORMAT "\n", address);
+		msg("[!] Error reading memory from " HEX_FORMAT "\n", address);
 	return value;
 }
 
@@ -269,11 +293,11 @@ ea_t read_regSize_from_ida(ea_t address)
 	//More info here: https://www.hex-rays.com/products/ida/support/sdkdoc/dbg_8hpp.html#ac67a564945a2c1721691aa2f657a908c
 	invalidate_dbgmem_contents(address, sizeof(value));
 	if (!get_many_bytes(address, &value, sizeof(value)))
-		warning("[!] Error reading memory from " HEX_FORMAT "\n", address);
+		msg("[!] Error reading memory from " HEX_FORMAT "\n", address);
 	return value;
 }
 
-/*This function renames a tainted function with the prefix RENAME_TAINTED_FUNCTIONS_PREFIX, by default "T%03d_"*/
+/*This function renames a tainted function with the prefix RENAME_TAINTED_FUNCTIONS_PATTERN, by default "T%03d_"*/
 void rename_tainted_function(ea_t address)
 {
 	qstring func_name;
@@ -281,11 +305,11 @@ void rename_tainted_function(ea_t address)
 	if (get_func_name2(&func_name, address) > 0)
 	{
 		//If the function isn't already renamed
-		if (strstr(func_name.c_str(), "T0") != func_name.c_str())
+		if (strstr(func_name.c_str(), RENAME_TAINTED_FUNCTIONS_PREFIX) != func_name.c_str())
 		{
 			char new_func_name[MAXSTR];
 			//This is a bit tricky, the prefix contains the format string, so if the user modified it and removes the format string isn't going to work
-			qsnprintf(new_func_name, sizeof(new_func_name), RENAME_TAINTED_FUNCTIONS_PREFIX"_%s", ponce_runtime_status.tainted_functions_index, func_name.c_str());
+			qsnprintf(new_func_name, sizeof(new_func_name), RENAME_TAINTED_FUNCTIONS_PATTERN"%s", ponce_runtime_status.tainted_functions_index, func_name.c_str());
 			//We need the start of the function we can have that info with our function find_function
 			set_name(find_function(func_name.c_str()), new_func_name);
 			if (cmdOptions.showDebugInfo)
@@ -436,7 +460,7 @@ Input * solve_formula(ea_t pc, uint bound)
 		auto symExpr = triton::api.getFullAstFromId(ripId);
 		ea_t notTakenAddr = ponce_runtime_status.myPathConstraints[bound].notTakenAddr;
 		if (cmdOptions.showExtraDebugInfo)
-			msg("[+] ripId: %lu notTakenAddr: " HEX_FORMAT "\n", ripId, notTakenAddr);
+			msg("[+] ripId: %d notTakenAddr: " HEX_FORMAT "\n", ripId, notTakenAddr);
 		expr.push_back(triton::ast::assert_(triton::ast::equal(symExpr, triton::ast::bv(notTakenAddr, symExpr->getBitvectorSize()))));
 
 		//Time to solve
@@ -451,7 +475,8 @@ Input * solve_formula(ea_t pc, uint bound)
 			/*Create the full formula*/
 			ss << "(set-logic QF_AUFBV)\n";
 			/* Then, delcare all symbolic variables */
-			ss << triton::api.getVariablesDeclaration();
+			ss << triton::api.getSymbolicEngine()->getVariablesDeclaration();
+			//ss << triton::api.getVariablesDeclaration();
 			/* And concat the user expression */
 			ss << "\n\n";
 			ss << final_expr;
@@ -487,18 +512,19 @@ Input * solve_formula(ea_t pc, uint bound)
 				switch (symbVar->getSize())
 				{
 				case 8:
-					msg(" - %s (%s):%#02x (%c)\n", it->second.getName().c_str(), symbVarComment.c_str(), secondValue.convert_to<uchar>(), secondValue.convert_to<uchar>());
+					msg(" - %s (%s):%#02x (%c)\n", it->second.getName().c_str(), symbVarComment.c_str(), secondValue.convert_to<uchar>(), secondValue.convert_to<uchar>() == 0? ' ': secondValue.convert_to<uchar>());
 					break;
 				case 16:
-					msg(" - %s (%s):%#04x\n", it->second.getName().c_str(), symbVarComment.c_str(), secondValue.convert_to<ushort>());
+					msg(" - %s (%s):%#04x (%c%c)\n", it->second.getName().c_str(), symbVarComment.c_str(), secondValue.convert_to<ushort>(), secondValue.convert_to<uchar>() == 0 ? ' ' : secondValue.convert_to<uchar>(), (unsigned char)(secondValue.convert_to<ushort>() >> 8) == 0 ? ' ': (unsigned char)(secondValue.convert_to<ushort>() >> 8));
 					break;
 				case 32:
+					msg(" - %s (%s):%#08x\n", it->second.getName().c_str(), symbVarComment.c_str(), secondValue.convert_to<uint32>());
 					break;
 				case 64:
 					msg(" - %s (%s):%#16llx\n", it->second.getName().c_str(), symbVarComment.c_str(), secondValue.convert_to<uint64>());
 					break;
 				default:
-					msg("Unsupported size for the symbolic variable: %s (%s)\n", it->second.getName().c_str(), symbVarComment.c_str());
+					msg("[!] Unsupported size for the symbolic variable: %s (%s)\n", it->second.getName().c_str(), symbVarComment.c_str());
 				}
 			}
 			return newinput;
@@ -737,18 +763,20 @@ bool ask_for_execute_native()
 
 /*This function deletes the prefixes and sufixes that IDA adds*/
 qstring clean_function_name(qstring name){
-	if (name.substr(0,4) == "imp_")
+	if (name.substr(0, 7) == "__imp__")
+		return clean_function_name(name.substr(7));
+	else if (name.substr(0, 4) == "imp_")
 		return clean_function_name(name.substr(4));
-	else if (name.substr(0,3)== "cs:" || name.substr(0,3) == "ds:")
+	else if (name.substr(0, 3) == "cs:" || name.substr(0, 3) == "ds:")
 		return clean_function_name(name.substr(3));
 	else if (name.substr(0, 2) == "j_")
 		return clean_function_name(name.substr(2));
 	else if (name.substr(0, 1) == "_" || name.substr(0, 1) == "@" || name.substr(0, 1) == "?")
 		return clean_function_name(name.substr(1));
-	else if (name.find('@',0) != -1)
+	else if (name.find('@', 0) != -1)
 		return clean_function_name(name.substr(0, name.find('@', 0)));
 	else if (name.at(name.length() - 2) == '_' && isdigit(name.at(name.length() - 1))) //name_1
-		return clean_function_name(name.substr(0, name.length()- 2));
+		return clean_function_name(name.substr(0, name.length() - 2));
 	return name;
 }
 
@@ -758,7 +786,7 @@ qstring get_callee(ea_t address){
 	static const char * nname = "$ vmm functions";
 	netnode n(nname);
 	auto fun = n.altval(address) - 1;
-
+	
 	if (fun == -1){
 		if (isCode(get_flags_novalue(address)))
 			ua_outop2(address, buf, sizeof(buf), 0);
@@ -766,7 +794,8 @@ qstring get_callee(ea_t address){
 		name = clean_function_name(buf);
 	}
 	else{
-		get_ea_name(&name, address);
+		get_ea_name(&name, fun); // 00C5101A call    edi ; __imp__malloc style
+		
 		if (name.empty())
 		{
 			if (isCode(get_flags_novalue(address)))
@@ -774,6 +803,9 @@ qstring get_callee(ea_t address){
 			tag_remove(buf, buf, sizeof(buf));
 
 			name = clean_function_name(buf);
+		}
+		else{
+			name = clean_function_name(name);
 		}
 	}
 	return name;	
@@ -815,7 +847,7 @@ void readBlacklistfile(char* path){
 	std::vector<std::string>* black_func = new std::vector<std::string>();
 	while (std::getline(file, str)){
 		if (cmdOptions.showDebugInfo)
-			msg("Adding %s to the blacklist funtion list\n",str.c_str());
+			msg("[+] Adding %s to the blacklist funtion list\n",str.c_str());
 		black_func->push_back(str);
 	}
 }

@@ -19,7 +19,7 @@
 
 //Triton
 #include <api.hpp>
-
+#include "x86Specifications.hpp"
 
 void taint_or_symbolize_main_callback(ea_t main_address)
 {
@@ -35,63 +35,88 @@ void taint_or_symbolize_main_callback(ea_t main_address)
 		//First we taint the argc
 #if !defined(__EA64__)
 		//In x86 we taint the memory of the first arg, argc
-		msg("%s argc at memory: " HEX_FORMAT "\n", cmdOptions.use_tainting_engine? "Tainting": "Symbolizing", get_args_pointer(0, true));
+		//msg("[!] %s argc at memory: " HEX_FORMAT "\n", cmdOptions.use_tainting_engine? "Tainting": "Symbolizing", get_args_pointer(0, true));
 		if (cmdOptions.use_tainting_engine)
 			triton::api.taintMemory(triton::arch::MemoryAccess(get_args_pointer(0, true), 4, argc));
-		else
+		else 
 			triton::api.convertMemoryToSymbolicVariable(triton::arch::MemoryAccess(get_args_pointer(0, true), 4, argc), "argc");
 		if (cmdOptions.showDebugInfo)
 			msg("[!] argc %s\n", cmdOptions.use_tainting_engine ? "Tainted" : "Symbolized");
 #else
 		triton::arch::Register reg;
 #ifdef __NT__ 
-		str_to_register("RCX", reg);
+		reg = triton::arch::x86::x86_reg_rcx;
 #elif __LINUX__ || __MAC__
-		str_to_register("RDI", reg);
+		reg = triton::arch::x86::x86_reg_rdi;
 #endif
 		reg.setConcreteValue(argc);
-		triton::api.taintRegister(reg);
+		if (cmdOptions.use_tainting_engine)
+			triton::api.taintRegister(reg);
+		else
+			triton::api.convertRegisterToSymbolicVariable(reg, "argc");
+
 		if (cmdOptions.showDebugInfo)
-			msg("[!] argc %s\n", cmdOptions.use_tainting_engine ? "Tainted" : "Symbolized");
+			msg("[!] argc (%s) %s\n", reg.getName().c_str(), cmdOptions.use_tainting_engine ? "Tainted" : "Symbolized");
 #endif	
 		start_tainting_or_symbolic_analysis();
 	}
-
 	//Second we taint all the arguments values
+	// We should first see if we are tainting main or wmain (Unicode)
+	bool unicode = false;
+	ea_t main_function = find_function("wmain");
+	if (main_function != - 1)
+		unicode = true;
+	else
+	{
+		//Maybe we should look for more? _tmain?
+		main_function = find_function("_wmain");
+		if (main_function != -1)
+			unicode = true;
+		// If wmain or _wmain where not found it means that wmain was the function we found before
+		// Unexpected behaviour if main and wmain exists
+	}
+
+	triton::uint32 char_size = unicode? 2: 1;// "char_size" in unicode is 2
+	const void* null_byte =	unicode? "\0\0": "\0";
+
 	//We are tainting the argv[0], this is the program path, and it is something that the 
 	//user controls and sometimes is used to do somechecks
 	for (unsigned int i = cmdOptions.taintArgv0 ? 0 : 1; i < argc; i++)
 	{
 		ea_t current_argv = read_regSize_from_ida(argv + i * REG_SIZE);
-		if (current_argv == 0xffffffff)
+		if (current_argv == (ea_t)-1)
 		{
 			msg("[!] Error reading mem: " HEX_FORMAT "\n", argv + i * REG_SIZE);
 			break;
 		}
 		//We iterate through all the bytes of the current argument
 		int j = 0;
-		char current_char;
+		short current_char;
 		do
 		{
-			current_char = read_char_from_ida(current_argv + j);
-			if (current_char == '\0' && !cmdOptions.taintEndOfString)
+			if (unicode)
+				current_char = read_unicode_char_from_ida(current_argv + j*char_size);
+			else		
+				current_char = read_char_from_ida(current_argv + j*char_size);
+
+			if (memcmp(&current_char, null_byte, char_size) == 0 && !cmdOptions.taintEndOfString)
+			{
 				break;
-			if (cmdOptions.showExtraDebugInfo){
-				msg("[!] %s argv[%d][%d]: %c\n", cmdOptions.use_tainting_engine ? "Tainting" : "Symbolizing", i, j, current_char);
-				msg("\n");
 			}
+			
+			if (cmdOptions.showExtraDebugInfo)
+				msg("[!] %s argv[%d][%d]: %c\n", cmdOptions.use_tainting_engine ? "Tainting" : "Symbolizing", i, j, (char)current_char == 0 ? ' ' : (char)current_char);
 			if (cmdOptions.use_tainting_engine)
-				triton::api.taintMemory(triton::arch::MemoryAccess(current_argv + j, 1, current_char));
+				triton::api.taintMemory(triton::arch::MemoryAccess(current_argv + j*char_size, char_size, current_char));
 			else
 			{
 				char comment[256];
 				qsnprintf(comment, 256, "argv[%d][%d]", i, j);
 				//msg("Converting memory to symbolic " HEX_FORMAT "\n", current_argv + j);
-				triton::api.convertMemoryToSymbolicVariable(triton::arch::MemoryAccess(current_argv + j, 1, current_char), comment);
-
+				triton::api.convertMemoryToSymbolicVariable(triton::arch::MemoryAccess(current_argv + j*char_size, char_size, current_char), comment);
 			}
 			j++;
-		} while (current_char != '\0');
+		} while (memcmp(&current_char, null_byte, char_size) != 0);
 		if (j > 1)
 		{
 			//Enable trigger, something is tainted...
@@ -108,16 +133,25 @@ void set_automatic_taint_n_simbolic()
 	if (cmdOptions.taintArgv)
 	{
 		//We should transparentelly hook the main so we could taint the argv when the execution is there
-		//First we need to find the main function
-		ea_t main_function = find_function("main");
+		//First we need to find the main function. Look first for wmain since if wmain exists main is more likely to exist too
+		//Adding wmain feature https://github.com/illera88/Ponce/issues/56
+		ea_t main_function = find_function("wmain");
 		if (main_function == -1)
 		{
 			//Maybe we should look for more? _tmain?
-			main_function = find_function("_main");
+			main_function = find_function("_wmain");
 			if (main_function == -1)
 			{
-				msg("[!] main function not found, we cannot taint the args :S\n");
-				return;
+				// Lets search for wmain
+				main_function = find_function("main");
+				if (main_function == -1)
+				{
+					main_function = find_function("_main");
+					if (main_function == -1){
+						msg("[!] main function not found, we cannot taint the args :S\n");
+						return;
+					}
+				}	
 			}
 		}
 		if (cmdOptions.showDebugInfo)
